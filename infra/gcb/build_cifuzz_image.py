@@ -25,7 +25,7 @@ from oauth2client.client import GoogleCredentials
 from googleapiclient.discovery import build
 
 CIFUZZ_IMAGE = 'base-cifuzz'
-PROJECT_ID = 'oss-fuzz-cifuzz'
+PROJECT_ID = 'oss-fuzz-base'
 TAG_PREFIX = 'gcr.io/{0}/'.format(PROJECT_ID)
 
 
