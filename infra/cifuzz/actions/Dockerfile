@@ -15,7 +15,7 @@
 ################################################################################
 # Docker image to run CIFuzz in.
 
-FROM gcr.io/oss-fuzz-base/base-cifuzz
+FROM gcr.io/oss-fuzz-cifuzz/base-cifuzz
 
 ENV OSS_FUZZ_ROOT=/opt/oss-fuzz
 RUN git clone https://github.com/google/oss-fuzz.git ${OSS_FUZZ_ROOT}
