@@ -26,6 +26,7 @@ import sys
 import fuzz_target
 
 # pylint: disable=wrong-import-position
+# pylint: disable=import-error
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import build_specified_commit
 import helper
@@ -141,6 +142,8 @@ def run_fuzzers(project_name, fuzz_seconds, workspace):
     logging.error('Invalid workspace: %s.', workspace)
     return False, False
   out_dir = os.path.join(workspace, 'out')
+  bug_report_dir = os.path.join(out_dir, 'bug_report')
+  os.makedirs(bug_report_dir, exist_ok=True)
   if not fuzz_seconds or fuzz_seconds < 1:
     logging.error('Fuzz_seconds argument must be greater than 1, but was: %s.',
                   format(fuzz_seconds))
@@ -164,6 +167,29 @@ def run_fuzzers(project_name, fuzz_seconds, workspace):
     else:
       logging.info('Fuzzer %s, detected error: %s.', target.target_name,
                    stack_trace)
-      shutil.move(test_case, os.path.join(out_dir, 'testcase'))
+      shutil.move(test_case, os.path.join(bug_report_dir, 'test_case'))
+      parse_fuzzer_output(stack_trace, bug_report_dir)
       return True, True
   return True, False
+
+
+def parse_fuzzer_output(fuzzer_output, out_dir):
+  """Parses the fuzzer output from a libfuzzer binary.
+
+  Args:
+    fuzzer_output: A libfuzzer binary output string to be parsed.
+    out_dir: The location to store the parsed output files
+  """
+  begin_summary = fuzzer_output.find('SUMMARY')
+  end_summary = fuzzer_output.find('==ABORTING')
+  summary_str = fuzzer_output[begin_summary:end_summary]
+  summary_file_path = os.path.join(out_dir, 'bug_summary.txt')
+  with open(summary_file_path, 'a') as summary_handle:
+    summary_handle.write(summary_str)
+
+  begin_stack = fuzzer_output.find('==ERROR')
+  end_stack = fuzzer_output.find('SUMMARY')
+  stack_str = fuzzer_output[begin_stack:end_stack]
+  stack_file_path = os.path.join(out_dir, 'bug_stack.txt')
+  with open(stack_file_path, 'a') as stack_handle:
+    stack_handle.write(stack_str)
